@@ -55,11 +55,27 @@ class ClientRepository implements ClientRepositoryInterface
      */
     public function paginate(ClientListModel $model)
     {
-        $query = Client::query();
+        $query = Client::query()->selectRaw('
+            (
+                SELECT COUNT(users.id) FROM users
+                WHERE users.client_id = clients.id
+                AND users.status = "Active"
+                GROUP BY users.client_id
+            )
+            as active_users',
+        )->selectRaw('
+            (
+                SELECT COUNT(users.id) FROM users
+                WHERE users.client_id = clients.id
+                GROUP BY users.client_id
+            )
+            as users_count',
+        )->select('clients.*');
 
-        $whereLike = array_filter(
+        $whereFields = array_filter(
             [
-                'name' => $model->getName(),
+                'id' => $model->getId(),
+                'client_name' => $model->getName(),
                 'address1' => $model->getAddress1(),
                 'address2' => $model->getAddress2(),
                 'city' => $model->getCity(),
@@ -68,14 +84,13 @@ class ClientRepository implements ClientRepositoryInterface
                 'zip' => $model->getZipCode(),
                 'phone_no1' => $model->getPhoneNo1(),
                 'phone_no2' => $model->getPhoneNo2(),
-                'id' => $model->getId(),
                 'latitude' => $model->getLatitude(),
                 'longitude' => $model->getLongitude(),
                 'status' => $model->getStatus(),
             ]
         );
 
-        $whereDate = array_filter(
+        $whereDateFields = array_filter(
             [
                 'start_validity' => $model->getStartValidity(),
                 'end_validity' => $model->getEndValidity(),
@@ -84,11 +99,11 @@ class ClientRepository implements ClientRepositoryInterface
             ]
         );
 
-        foreach ($whereLike as $field => $value) {
-            $query->where($field, 'LIKE', sprintf('%%%s%%', $value));
+        foreach ($whereFields as $field => $value) {
+            $query->where($field,  $value);
         }
 
-        foreach ($whereDate as $field => $value) {
+        foreach ($whereDateFields as $field => $value) {
             $query->whereDate($field, $value);
         }
 

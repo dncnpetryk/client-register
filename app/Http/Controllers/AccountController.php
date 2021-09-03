@@ -31,11 +31,6 @@ class AccountController extends Controller
     public function list(ListRequest $request): ClientListResource
     {
         $clients = $this->clientRepository->paginate($request);
-        $users = $this->userRepository->getUsers($clients->collect()->pluck('id')->toArray());
-
-        foreach ($clients as $client) {
-            $client->users = ($users[$client->id]) ?? [];
-        }
 
         return new ClientListResource($clients);
     }

@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Arr;
 
 class ClientResource extends JsonResource
 {
@@ -33,21 +32,10 @@ class ClientResource extends JsonResource
 
     public function getTotalUser()
     {
-        if (!$this->users) {
-            return [
-                'all' => 0,
-                'active' => 0,
-                'inactive' => 0,
-            ];
-        }
-
-        $active = Arr::get($this->users, 'Active', 0);
-        $inactive = Arr::get($this->users, 'Inactive', 0);
-
         return [
-            'all' => $active + $inactive,
-            'active' => $active,
-            'inactive' => $inactive,
+            'all' => $this->users_count,
+            'active' => $this->active_users,
+            'inactive' => $this->users_count - $this->active_users,
         ];
     }
 }
