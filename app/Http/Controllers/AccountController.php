@@ -9,6 +9,7 @@ use App\Repositories\ClientRepository;
 use App\Repositories\UserRepository;
 use App\Services\GeoCoordinatesApiService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
@@ -48,7 +49,7 @@ class AccountController extends Controller
         } catch(\Exception $e) {
             DB::rollBack();
 
-            return new JsonResponse($e->getMessage());
+            return new JsonResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         DB::commit();
