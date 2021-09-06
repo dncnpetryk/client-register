@@ -6,27 +6,21 @@ use App\Http\Requests\Account\ListRequest;
 use App\Http\Requests\Account\StoreRequest;
 use App\Http\Resources\ClientListResource;
 use App\Repositories\ClientRepository;
-use App\Repositories\UserRepository;
-use App\Services\GeoCoordinatesApiService;
+use App\Services\AccountService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
 {
-    private UserRepository $userRepository;
+    private AccountService $accountService;
     private ClientRepository $clientRepository;
-    private GeoCoordinatesApiService $geoCoordinateApiService;
 
     public function __construct(
-        UserRepository $userRepository,
-        ClientRepository $clientRepository,
-        GeoCoordinatesApiService $geoCoordinateApiService
+        AccountService $accountService,
+        ClientRepository $clientRepository
     )
     {
-        $this->userRepository = $userRepository;
+        $this->accountService = $accountService;
         $this->clientRepository = $clientRepository;
-        $this->geoCoordinateApiService = $geoCoordinateApiService;
     }
 
     public function list(ListRequest $request): ClientListResource
@@ -38,21 +32,7 @@ class AccountController extends Controller
 
     public function store(StoreRequest $request): JsonResponse
     {
-        DB::beginTransaction();
-
-        try {
-            $coordinates = $this->geoCoordinateApiService->getCoordinatesByAddress($request->getAddress1());
-
-            $client = $this->clientRepository->create($request, $coordinates);
-
-            $this->userRepository->create($request, $client);
-        } catch(\Exception $e) {
-            DB::rollBack();
-
-            return new JsonResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-        DB::commit();
+        $this->accountService->create($request);
 
         return new JsonResponse(null, 201);
     }

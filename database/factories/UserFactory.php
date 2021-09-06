@@ -32,7 +32,7 @@ class UserFactory extends Factory
             'phone' => $this->faker->phoneNumber,
             'profile_uri' => $this->faker->imageUrl,
             'last_password_reset' => Carbon::now(),
-            'status' => Client::STATUS_ACTIVE,
+            'status' => User::STATUS_ACTIVE,
         ];
     }
 }

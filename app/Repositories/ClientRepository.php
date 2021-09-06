@@ -24,7 +24,7 @@ class ClientRepository implements ClientRepositoryInterface
     public function create(CreateClientModel $model, array $coordinate): Client
     {
         $startValidity = Carbon::now();
-        $endValidity = $startValidity->addDays(15);
+        $endValidity = (clone $startValidity)->addDays(15);
 
         return Client::query()->firstOrCreate(
             [
@@ -59,10 +59,10 @@ class ClientRepository implements ClientRepositoryInterface
             (
                 SELECT COUNT(users.id) FROM users
                 WHERE users.client_id = clients.id
-                AND users.status = "Active"
+                AND users.status = ?
                 GROUP BY users.client_id
             )
-            as active_users',
+            as active_users', [Client::STATUS_ACTIVE],
         )->selectRaw('
             (
                 SELECT COUNT(users.id) FROM users
@@ -90,8 +90,7 @@ class ClientRepository implements ClientRepositoryInterface
             ]
         );
 
-        $whereDateFields = array_filter(
-            [
+        $whereDateFields = array_filter([
                 'start_validity' => $model->getStartValidity(),
                 'end_validity' => $model->getEndValidity(),
                 'created_at' => $model->getCreatedAt(),
@@ -107,8 +106,10 @@ class ClientRepository implements ClientRepositoryInterface
             $query->whereDate($field, $value);
         }
 
-        return $query
-            ->orderBy(static::FIELD_ALIAS[$model->getSort()], $model->getOrder())
-            ->paginate();
+        if (isset(static::FIELD_ALIAS[$model->getSort()])) {
+            $query->orderBy(static::FIELD_ALIAS[$model->getSort()], $model->getOrder());
+        }
+
+        return $query->paginate();
     }
 }
