@@ -106,10 +106,6 @@ class ClientRepository implements ClientRepositoryInterface
             $query->whereDate($field, $value);
         }
 
-        if (isset(static::FIELD_ALIAS[$model->getSort()])) {
-            $query->orderBy(static::FIELD_ALIAS[$model->getSort()], $model->getOrder());
-        }
-
-        return $query->paginate();
+        return $query->orderBy(static::FIELD_ALIAS[$model->getSort()] ?? $model->getSort(), $model->getOrder())->paginate();
     }
 }
