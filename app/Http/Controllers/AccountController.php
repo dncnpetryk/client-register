@@ -32,8 +32,6 @@ class AccountController extends Controller
 
     public function store(StoreRequest $request): JsonResponse
     {
-        $this->accountService->create($request);
-
-        return new JsonResponse(null, 201);
+        return $this->accountService->create($request);
     }
 }

@@ -23,7 +23,7 @@ class GeoCoordinatesApiService
 
         $coordinates = Arr::only(
             $this->geocoder->getCoordinatesForAddress($address),
-            ['lat', 'lng',]
+            ['lat', 'lng']
         );
 
         Cache::store('redis')->set($address, json_encode($coordinates));

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Client;
 use App\Models\User;
+use App\Services\GeoCoordinatesApiService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Response;
 use Tests\TestCase;
@@ -14,6 +15,8 @@ class AccountTest extends TestCase
 
     public function test_register()
     {
+        $this->mockGeoCoordinate();
+
         $client = Client::factory()->make();
 
         $user = User::factory()->make();
@@ -23,6 +26,26 @@ class AccountTest extends TestCase
         $response = $this->postJson('/api/register', $payload);
 
         $response->assertStatus(Response::HTTP_CREATED);
+
+        $this->assertDatabaseHas('clients',[
+            'client_name' => $client->client_name,
+            'city' => $client->city,
+            'state' => $client->state,
+            'latitude' => 50.450001,
+            'longitude' => 30.523333,
+            'country' => $client->country,
+            'zip' => $client->zip,
+            'status' => $client->status,
+        ]);
+
+        $this->assertDatabaseHas('users',[
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'last_password_reset' => $user->last_password_reset,
+            'status' => $user->status,
+        ]);
     }
 
     public function test_list()
@@ -102,5 +125,26 @@ class AccountTest extends TestCase
                 'phone' => $user->phone,
             ],
         ];
+    }
+
+    protected function mockGeoCoordinate()
+    {
+        $this->app->bind(GeoCoordinatesApiService::class, function () {
+            $mock = $this->getMockBuilder(GeoCoordinatesApiService::class)
+                ->disableOriginalConstructor()
+                ->setMethods(['getCoordinatesByAddress'])
+                ->getMock();
+            $mock
+                ->expects($this->any())
+                ->method('getCoordinatesByAddress')
+                ->willReturn(
+                    [
+                        'lat' => 50.450001,
+                        'lng' => 30.523333,
+                    ]
+                );
+
+            return $mock;
+        });
     }
 }

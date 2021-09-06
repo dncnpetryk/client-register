@@ -30,7 +30,7 @@ class AccountService
 
     }
 
-    public function create(StoreRequest $request)
+    public function create(StoreRequest $request): JsonResponse
     {
         $this->databaseManager->beginTransaction();
 
@@ -47,5 +47,7 @@ class AccountService
         }
 
         $this->databaseManager->commit();
+
+        return new JsonResponse(null, 201);
     }
 }
